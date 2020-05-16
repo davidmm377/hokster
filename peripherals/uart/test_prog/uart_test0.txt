@@ -1,0 +1,46 @@
+# UART Test 0 - TX (1 char)
+# Minh Vu
+# 05/08/2020
+
+# Constants
+.equ hcap 0x48 # 'H' ASCII value
+.equ ocap 0x4F # 'O' ASCII value
+.equ kcap 0x4B # 'K' ASCII value
+.equ scap 0x53 # 'S' ASCII value
+.equ tcap 0x54 # 'T' ASCII value
+.equ ecap 0x45 # 'E' ASCII value
+.equ rcap 0x52 # 'R' ASCII value
+
+
+# Set up interrupt (enable interrupt, set interrupt vector)
+# Use interrupt 2
+mvi 0x00, a0
+mvi 0x04, r0
+sie 0
+mvv isr, iv2
+
+# Load value to transmit at memory-mapped address 0x0111
+mvi 0x01, a0
+mvi 0x11, r0
+mvi hcap, r1
+stb r1, 0
+
+# Start transmission by writing to memory-mapped address 0x0110
+# (any value will do)
+mvi 0x10, r0
+stb r1, 0
+
+# Wait for interrupt (don't necessarily have to)
+hlt
+
+# End of program
+sys 0xFF
+.end
+
+
+# ISR definition
+# TODO load and transmit some more characters
+.align
+.lbl isr
+sys 0x02    # Ack interrupt 2
+rti

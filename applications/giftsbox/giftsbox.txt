@@ -1,0 +1,134 @@
+# gift bitslice sbox (giftsbox.txt)
+
+.dat 0x0000 0x01, 0x23, 0x45, 0x67
+.equ mask 0x01
+.equ iter 0x04
+# processes 4 bytes at a time
+
+#start
+#establish start address a0:r0 and load first word
+mvs 0x0010 # establish stack start
+mvi 0, a0
+mvi 0, r0
+#loop counter
+mvi iter, r7
+jsr clrregs
+# In lp0 we get bytes 1 at a time from memory,
+# unroll the bits in each byte, and stratify them
+# into x0, x1, x2, x3, where x0 contains all of the bits
+# in pos 0, x1 contains all bits in pos 1, etc.
+.lbl lp0
+lpb 0, r1
+mvi mask, r2
+jsr lp1
+jsr lp1
+sbi 1, r7
+bzi lp0done
+jmp lp0
+.lbl lp0done
+# Once bits are unrolled we use the bitslice sbox calculation
+# described in the gift specification
+# The actual bitslice calculation operates on all bits
+# in parallel, and would be very fast if we didn't have 
+# to spend so much time unrolling bits
+jsr sbox
+#inverse procedure
+# Once sbox has been applied we roll them back to initial
+# order and put them back in memory 1 byte at a time
+mvi 0, r0
+mvi iter, r7
+.lbl lp4
+mvi 0, r1
+jsr lp3
+jsr lp3
+spb r1, 0
+sbi 1, r7
+bzi lp4done
+jmp lp4
+.lbl lp4done
+sys 0xFF
+.end
+.lbl clrregs
+# clears registers
+mvi 0, r3
+mvi 0, r4
+mvi 0, r5
+mvi 0, r6
+ret
+.lbl lp1
+# Gets raw byte input in r1, puts them into 
+# x0 = r3, x1 = r4, x2 = r5, x3 = r6
+and r1, r2
+lor r2, r3
+mvi mask, r2
+ror r2, r3
+ror r2, r1
+and r1, r2
+lor r2, r4
+mvi mask, r2
+ror r2, r4
+ror r2, r1
+and r1, r2
+lor r2, r5
+mvi mask, r2
+ror r2, r5
+ror r2, r1
+and r1, r2
+lor r2, r6
+mvi mask, r2
+ror r2, r6
+ror r2, r1
+ret
+.lbl sbox
+# bitsliced sbox from gift specification
+#t1 r1
+#t2 r2
+#x0 r3
+#x1 r4
+#x2 r5
+#x3 r6
+mov r5, r1 #t1 = x2
+and r3, r1 #t1 = t1 ^ x0
+xor r1, r4 #x1 = x1 xor t1
+mov r6, r1 #t1 = x3
+and r4, r1 #t1 = t1 ^ x1
+xor r3, r1 #t1 = t1 xor x0
+mov r1, r2 #t2 = t1
+lor r4, r1 #t1 = t1 u x1
+xor r1, r5 #x2 = x2 xor t1
+mov r5, r1 #t1 = x2
+xor r6, r1 #t1 = t1 xor x3
+mov r1, r3 #x0 = t1
+xor r3, r4 #x1 = x1 xor x0
+not r3, r3 #x0 = ~x0
+mov r2, r1 #t1 = t2
+and r4, r1 #t1 = t1 ^ x1
+xor r1, r5 #x2 = x2 xor t1
+mov r2, r6 #x3 = x2
+ret
+.lbl lp3
+# takes output in x0 = r3, x1 = r4, x2 = r5, x3 = r6
+# rolls bits to correct order in r1; returns r1 for storage
+mvi mask, r2
+and r3, r2
+lor r2, r1
+mvi mask, r2
+ror r2, r3
+ror r2, r1
+and r4, r2
+lor r2, r1
+mvi mask, r2
+ror r2, r4
+ror r2, r1
+and r5, r2
+lor r2, r1
+mvi mask, r2
+ror r2, r5
+ror r2, r1
+and r6, r2
+lor r2, r1
+mvi mask, r2
+ror r2, r6
+ror r2, r1
+ret
+

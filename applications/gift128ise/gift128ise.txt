@@ -1,0 +1,272 @@
+# gift128ise
+# HOKSTER Custom Processor Group
+# 04262020
+# Uses gsp to perform sbox and permutation
+
+# test vectors from gift github site
+.dat 0x0000 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10
+.dat 0x0008 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10 
+.dat 0x0010 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10
+.dat 0x0018 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10 
+.dat 0x0020 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+.dat 0x0028 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+.dat 0x0030 0x01, 0x0A, 0x04, 0x0C, 0x06, 0x0F, 0x03, 0x09
+.dat 0x0038 0x02, 0x0D, 0x0B, 0x07, 0x05, 0x00, 0x08, 0x0E
+.dat 0x0040 0x1A, 0x2D, 0x36, 0x1B, 0x0D, 0x06, 0x23, 0x31
+.dat 0x0048 0x38, 0x1C, 0x2E, 0x17, 0x0B, 0x05, 0x02, 0x21
+.dat 0x0050 0x30, 0x18, 0x2C, 0x16, 0x2B, 0x35, 0x3A, 0x1D
+.dat 0x0058 0x0E, 0x27, 0x33, 0x39, 0x3C, 0x1E, 0x2F, 0x37
+.dat 0x0060 0x3B, 0x3D, 0x3E, 0x1F, 0x0F, 0x07, 0x03, 0x01
+
+.equ basestarthigh 0x00
+.equ basestartlow 0x08
+.equ bufferstarthigh 0x00
+.equ bufferstartlow 0x08
+.equ statestart 0x00
+.equ bstart 0x0F
+.equ keystart 0x10
+.equ uptr 0x14
+.equ vptr 0x1C
+.equ k1 0x1C
+.equ ksrc 0x1B
+.equ cstart 0x40
+.equ mask1r 0x01
+.equ mask2r 0x02
+.equ maskFr 0x0F
+.equ mask1l 0x80
+.equ mask2l 0x40
+.equ mask3r 0x03
+.equ maskFl 0xF0
+.equ iter 0x04
+.equ rciter 0x03
+.equ scount 0x10
+.equ c127 0x80
+.equ kbytes 0x0C
+.equ rnds 0x27 
+
+#start
+mvs 0x0080 # establish stack start
+mvi rnds, r7
+.lbl mainlp
+psh r7
+#start combined sbox and permutation
+mvi 0, a0 # source pointer [15:8]
+# load registers from memory
+# order (most to least significant)
+# low order [63:0] -> a2:r2:a3:r3:a4:r4:a5:r5
+mvi basestartlow, r0 # source pointer [7:0]
+lpb 0, a2
+lpb 0, r2
+lpb 0, a3
+lpb 0, r3
+lpb 0, a4
+lpb 0, r4
+lpb 0, a5
+lpb 0, r5
+#ingest into accelerator
+gsp r5, a5
+gsp r4, a4
+gsp r3, a3
+gsp r2, a2
+# high order [127:64] -> a2:r2:a3:r3:a4:r4:a5:r5
+mvi basestarthigh, r0 # source pointer
+lpb 0, a2
+lpb 0, r2
+lpb 0, a3
+lpb 0, r3
+lpb 0, a4
+lpb 0, r4
+lpb 0, a5
+lpb 0, r5
+#ingest into accelerator
+gsp r5, a5
+gsp r4, a4
+gsp r3, a3
+gsp r2, a2
+#dump results [127:64]
+gsp r2, r2
+gsp a3, a3
+gsp r3, r3
+gsp a4, a4
+gsp r4, r4
+gsp a5, a5
+gsp r5, r5
+#store results to high [127:64]
+mvi bufferstarthigh, r0
+spb a2, 0
+spb r2, 0
+spb a3, 0
+spb r3, 0
+spb a4, 0
+spb r4, 0
+spb a5, 0
+spb r5, 0
+#dump results [63:0]
+gsp a2, a2
+gsp r2, r2
+gsp a3, a3
+gsp r3, r3
+gsp a4, a4
+gsp r4, r4
+gsp a5, a5
+gsp r5, r5
+#store results to low [63:0]
+mvi bufferstartlow, r0
+spb a2, 0
+spb r2, 0
+spb a3, 0
+spb r3, 0
+spb a4, 0
+spb r4, 0
+spb a5, 0
+spb r5, 0
+# end sbox and permutation
+# start round key addition
+mvi 0, a0
+mvi statestart, r0
+mvi uptr, r1
+mvi vptr, r2
+# initialize rotations
+mvi 3, a3
+mvi 4, a4
+mvi iter, a6 # outer loop counter
+#outer loop get uj and vj
+.lbl rklp1
+mvi 0, a1
+mvi 0, a2
+lpb 1, r4 # get uj
+lpb 2, r5 # get vj
+mvi 2, a2 # rotation amount
+mvi iter, a7 # inner loop counter
+#inner loop get and process b
+.lbl rklp2
+ldb 0, r3 # get bi
+# process uj into bi
+mov r4, a1
+jsr prcb
+rol a4, r7
+xor r7, r3
+rol a2, r4
+# process vj into bi
+mov r5, a1
+jsr prcb
+rol a3, r7
+xor r7, r3
+spb r3, 0
+rol a2, r5
+sbi 1, a7
+bzi rklp2done
+jmp rklp2
+.lbl rklp2done
+sbi 1, a6
+bzi rklp1done
+jmp rklp1
+.lbl rklp1done
+# round constant addition
+mvi 0, a0
+mvi 0, a1
+# initialize rotations
+mvi 2, a2
+mvi 3, a3
+# get constant
+mvi cstart, r0
+pop r1 # current round number into r1
+psh r1 # save back to stack
+add r0, r1 # get address of current constant
+ldb 1, r2 # load constant to r2
+mvi rciter, a4
+mvi bstart, r0
+# loop
+.lbl rclp1
+ldb 0, r4
+mvi mask1r, r3
+and r2, r3
+rol a3, r3
+xor r3, r4
+mvi mask2r, r3
+and r2, r3
+ror a2, r3
+xor r3, r4
+ror a2, r2
+stb r4, 0
+sbi 1, r0
+sbi 1, a4
+bzi rclp1end
+jmp rclp1
+.lbl rclp1end
+mvi statestart, r0
+ldb 0, r1
+mvi c127, r2
+xor r2, r1
+stb r1, 0
+# end round constant
+# key schedule
+# initialize
+mvi 0, a0
+mvi 2, a2
+mvi 4, a4
+#linear portion for k1 and k0
+# k1 rotate right by 3
+mvi k1, r0
+lpb 0, r1
+mvi mask3r, r2
+and r1, r2
+ror a2, r2
+srl a2, r1
+lpb 0, r3
+mvi mask3r, r4
+and r3, r4
+ror a2, r4
+srl a2, r3
+lor r2, r3
+lor r4, r1
+lpb 0, r5
+mvi maskFl, r2
+and r5, r2
+ror a4, r2
+sll a4, r5
+ldb 0, r6
+mvi maskFl, r4
+and r6, r4
+ror a4, r4
+sll a4, r6
+lor r2, r6
+lor r4, r5
+mvi 0, a2
+mvi ksrc, r2
+mvi kbytes, a3 # counter
+# loop
+.lbl kslp1
+ldb 2, r4
+stb r4, 0
+sbi 1, r2
+sbi 1, r0
+sbi 1, a3
+bzi kslp1end
+jmp kslp1
+.lbl kslp1end
+mvi keystart, r0
+spb r1, 0
+spb r3, 0
+spb r5, 0
+spb r6, 0
+# end keyschedule
+pop r7 # get current round number
+sbi 1, r7 # decrement round number
+bni mainlpdone # if less than 0
+jmp mainlp
+.lbl mainlpdone
+# end of program
+sys 0xFF
+.end
+# subroutines
+# process into bi
+.lbl prcb
+mvi mask1l, r7
+and a1, r7
+rol a3, r7
+mvi mask2l, r6
+and a1, r6
+lor r6, r7 # combine u and v parts
+ret
+

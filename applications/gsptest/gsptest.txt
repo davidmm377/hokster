@@ -1,0 +1,87 @@
+# gsptest
+
+.dat 0x0000 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF
+.dat 0x0008 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10
+.dat 0x0010 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+.dat 0x0018 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+
+.equ basestarthigh 0x00
+.equ basestartlow 0x08
+.equ bufferstarthigh 0x10
+.equ bufferstartlow 0x18
+
+#start
+mvs 0x0080
+mvi 0, a0 # source pointer [15:8]
+# load registers from memory
+# order (most to least significant)
+# low order [63:0] -> a2:r2:a3:r3:a4:r4:a5:r5
+mvi basestartlow, r0 # source pointer [7:0]
+lpb 0, a2
+lpb 0, r2
+lpb 0, a3
+lpb 0, r3
+lpb 0, a4
+lpb 0, r4
+lpb 0, a5
+lpb 0, r5
+#ingest into accelerator
+gsp r5, a5
+gsp r4, a4
+gsp r3, a3
+gsp r2, a2
+# high order [127:64] -> a2:r2:a3:r3:a4:r4:a5:r5
+mvi basestarthigh, r0 # source pointer
+lpb 0, a2
+lpb 0, r2
+lpb 0, a3
+lpb 0, r3
+lpb 0, a4
+lpb 0, r4
+lpb 0, a5
+lpb 0, r5
+#ingest into accelerator
+gsp r5, a5
+gsp r4, a4
+gsp r3, a3
+gsp r2, a2
+#dump results [127:64]
+gsp r2, r2
+gsp a3, a3
+gsp r3, r3
+gsp a4, a4
+gsp r4, r4
+gsp a5, a5
+gsp r5, r5
+#store results to high [127:64]
+mvi bufferstarthigh, r0
+spb a2, 0
+spb r2, 0
+spb a3, 0
+spb r3, 0
+spb a4, 0
+spb r4, 0
+spb a5, 0
+spb r5, 0
+#dump results [63:0]
+gsp a2, a2
+gsp r2, r2
+gsp a3, a3
+gsp r3, r3
+gsp a4, a4
+gsp r4, r4
+gsp a5, a5
+gsp r5, r5
+#store results to low [63:0]
+mvi bufferstartlow, r0
+spb a2, 0
+spb r2, 0
+spb a3, 0
+spb r3, 0
+spb a4, 0
+spb r4, 0
+spb a5, 0
+spb r5, 0
+#end
+sys 0xFF
+.end

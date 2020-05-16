@@ -1,0 +1,396 @@
+# Cham 128 Encryption with use of ChamISE command swd for rotations by 1 and 11
+# Trevor Laffoon
+# Edited: 5/1/2020
+#
+#
+# Place data in memory from 0x0000 to 0x000F
+# Place key in memory from 0x0010 to 0x001F
+# Memory 0x0020 to 0x003F is used for round key storage.
+
+# One set of test data and key
+#.dat 0x0000 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10, 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10
+#.dat 0x0010 0x08, 0x17, 0x20, 0x98, 0x76, 0x54, 0x32, 0x36, 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x25
+
+# Another set of test data and key
+.data 0x0000 0x33, 0x22, 0x11, 0x00, 0x77, 0x66, 0x55, 0x44, 0xbb, 0xaa, 0x99, 0x88, 0xff, 0xee, 0xdd, 0xcc
+.data 0x0010 0x03, 0x02, 0x01, 0x00, 0x07, 0x06, 0x05, 0x04, 0x0b, 0x0a, 0x09, 0x08, 0x0f, 0x0e, 0x0d, 0x0c
+
+
+.equ data 0x00          #Address for start of data to encrypt
+.equ x0 0x00
+.equ x1 0x04
+.equ x2 0x08
+.equ x3 0x0c
+# Data ends at 0x0F
+
+.equ key 0x10           #key addresses
+# Key ends at 0x1F
+
+.equ rk 0x20            #roud key array of 8 32bit round keys
+# Round keys end at 0x3f
+					
+.equ zero 0x00          #value zero
+
+.equ k 0x80             #parameters for cham128
+.equ n 0x80
+.equ rounds 0x50
+.equ w 0x20
+.equ kw 0x04
+
+
+
+
+#Register Uses:
+# a1, r1, a0, r0 = data / key storage for rotations
+# r2 = i
+# a2 = loop condition checking
+# r3 = address for round keys
+# a3 = address for round keys
+# r4 = address for key then data
+# a4 = address for key then data
+# r5 = temporary storage for rotations
+# a5 = temporary storage for rotations
+# a7, r7, a6, r6 = data / key storage for rotations
+
+
+
+.lbl main
+				
+    mvs 0x0070              #Stack start location
+
+    jsr cham128_setkeys     #jump to cham_setkeys
+
+    jsr chamEncrypt         #jump to encryption
+
+    sys 0xFF
+.end
+
+
+.lbl cham128_setkeys
+                            #load k address
+    mvi key, r4
+    mvi zero, a4
+
+    mvi zero, r2            #initialize i counter
+
+    .lbl beginKeySetWhile
+	
+        mov r2, a2
+        mvi 0x10, r3
+        sub r3, a2
+        bzi endOfKeyGen
+                        
+        jsr load32BitsFrom4 #load 32 bits of key
+
+                            #make a copy of 32 bits of key
+        jsr mov76to10
+
+        jsr ROTL32by1       #rotate key left by 1
+
+        jsr xor10to76
+
+        psh a1              #store result key temporary
+        psh r1
+        psh a0
+        psh r0
+
+        jsr ROTL32by8In10   #rotate key by 8
+
+        xor a7, a1
+        xor r7, r1
+        xor a6, a0
+        xor r6, r0          #xor the key rotated by 8 with result for xor of key with rotate by 1
+
+        mvi rk, r3          #store the result for i'th round key
+        add r2, r3
+        mvi zero, a3
+
+        jsr store32BitsTo3From10		
+
+        pop r0
+        pop a0
+        pop r1
+        pop a1
+
+        jsr ROTL32by11      #rotate key left by 11
+
+        jsr xor10to76       #xor the key rotated by 11 with result for xor of key with rotate by 1
+
+                            #store the result for (i + 16) ^ 1 round key
+        mvi 0x04, r1
+        xor r2, r1
+
+        mvi rk, r3
+        mvi 0x10, a2			
+
+        add r1, r3
+        add a2, r3
+
+        jsr store32BitsTo3
+
+        adi 0x4, r2         #increment i
+
+        jmp beginKeySetWhile
+    .lbl endOfKeyGen
+ret
+#end 
+
+
+.lbl mov76to10
+
+    mov a7, a1
+    mov r7, r1
+    mov a6, a0
+    mov r6, r0
+
+ret
+#end mov76to10
+
+.lbl xor10to76
+
+    xor a1, a7
+    xor r1, r7
+    xor a0, a6
+    xor r0, r6
+    
+ret
+#end xor10to76
+
+.lbl chamEncrypt
+
+    mvi zero, a4
+    mvi zero, a3
+
+    mvi zero, r2                #initialize i counter
+
+    .lbl BeginWhileEncrypt
+
+    psh r2
+    mvi rounds, a2
+    sub a2, r2
+
+    bzi EndWhileEncrypt
+        pop r2
+
+        mvi x1, r4
+
+        jsr load32BitsFrom4     #load x1 in a7 to r6
+
+        mvi 0x1, r0             #determine if i is odd or even
+        and r2, r0
+        add a4, r0
+        psh r0
+        bzi evenI
+        jsr ROTL32by8           #ROTL32(x1, 8)
+        jmp endEvenI
+
+        .lbl evenI
+        jsr ROTL32by1           #ROTL32(x1, 1)
+
+        .lbl endEvenI
+
+        jsr mov76to10
+
+        mvi rk, r4
+
+        mvi 0x07, r6
+
+        and r2, r6
+
+        mvi 0x02, r7
+
+        sll r7, r6
+
+        add r6, r4
+
+        jsr load32BitsFrom4     #load rk[i & 7] in a7 to r6
+
+        xor a7, a1              #ROTL32(x1, 1) ^ rk[i & 7]
+        xor r7, r1
+        xor a6, a0
+        xor r6, r0
+
+        mvi x0, r4
+        jsr load32BitsFrom4     #load x0
+
+        xor r2, r6              # x0 ^ i
+
+        jsr add32bit            #(x0 ^ i) + (ROTL32(x1, 1) ^ rk[i & 7])
+
+
+        pop r0
+        add a4, r0
+        bzi evenI2
+        jsr ROTL32by1           #ROTL32((x0 ^ i) + (ROTL32(x1, 8) ^ rk[i & 7]), 1)
+        jmp endEvenI2
+
+        .lbl evenI2
+        jsr ROTL32by8           #ROTL32((x0 ^ i) + (ROTL32(x1, 1) ^ rk[i & 7]), 8)
+        .lbl endEvenI2
+
+
+        #doing xchanging off data positions
+        mvi x3, r4
+
+        jsr load32BitsFrom4To10     #load x3 to a1 - r0
+
+        mvi x3, r4
+
+        jsr store32BitsTo4          #store x0 to x3
+
+        mvi x2, r4
+
+        jsr load32BitsFrom4         #load x2 to a7 - r6
+
+        mvi x2, r4
+
+        jsr store32BitsTo4From10    #store x3 to x2 
+
+        mvi x1, r4					
+
+        jsr load32BitsFrom4To10     #load x1 to a1 - r0
+
+        mvi x1, r4
+
+        jsr store32BitsTo4          #store x2 to x1
+
+        mvi x0, r4
+
+        jsr store32BitsTo4From10    #store x1 to x0
+
+        mvi 0x1, r0
+        add r0, r2                  #increment counter
+
+        jmp BeginWhileEncrypt
+    .lbl EndWhileEncrypt
+    pop r2
+ret
+#end of chamEncrypt
+
+
+.lbl add32bit
+                        #uses a7,r7,a6,r6 and a1,r1,a0,r0 as 32 bit number
+    add r0, r6
+    adc a0, a6
+    adc r1, r7
+    adc a1, a7
+
+ret
+#end add32bit
+
+.lbl ROTL32by8
+
+    psh a7
+    mov r7, a7
+    mov a6, r7
+    mov r6, a6
+    pop r6
+
+ret
+#end ROTL32by8
+
+.lbl ROTL32by8In10
+    psh a1
+    mov r1, a1
+    mov a0, r1
+    mov r0, a0
+    pop r0
+ret
+#edn ROTL32by8In10
+
+
+.lbl ROTL32by1
+                        #uses a7, r7, a6, r6 as number to rotate
+                        #r5 is amount to rotate left by
+    mvi 0x1, r5
+
+    swd r6, a6
+    swd r7, a7
+    swd r5, a7
+    swd r7, r7
+    swd a6, a6
+    swd r6, r6
+	
+ret
+#end of ROTL32by1
+						
+
+
+
+.lbl ROTL32by11
+                        #uses a1, r1, a0, r0 as number to rotate
+                        #r5 is loaded with amount to rotate by
+    mvi 0xb, r5
+
+    swd r0, a0
+    swd r1, a1
+    swd r5, a1
+    swd r1, r1
+    swd a0, a0
+    swd r0, r0
+
+ret
+#end of ROTL32by11
+
+
+.lbl load32BitsFrom4
+                        #loads registers a7 to r6 with data starting at address in a4,r4
+    lpb 4, a7
+    lpb 4, r7
+    lpb 4, a6
+    lpb 4, r6
+ret
+#end of load32BitsFrom4
+
+.lbl load32BitsFrom4To10
+                        #loads registers a1 to r0 with data starting at address in a4,r4
+    lpb 4, a1
+    lpb 4, r1
+    lpb 4, a0
+    ldb 4, r0
+
+ret
+#end of load32BitsFrom4To10
+
+.lbl store32BitsTo4From10
+                        #stores registers a1 to r0 starting at address in a4,r4
+    spb a1, 4
+    spb r1, 4
+    spb a0, 4
+    stb r0, 4
+	
+ret
+#end of store32BitsTo4From10
+
+
+.lbl store32BitsTo4
+                        #stores registers a7 to r6 starting at address in a4,r4
+    spb a7, 4
+    spb r7, 4
+    spb a6, 4
+    stb r6, 4
+	
+ret
+#end of store32BitsTo4
+
+.lbl store32BitsTo3
+                        #stores registers a7 to r6 starting at address in a3,r3
+    spb a7, 3
+    spb r7, 3
+    spb a6, 3
+    stb r6, 3
+	
+ret
+#end of store32BitsTo3
+
+	
+
+.lbl store32BitsTo3From10
+                        #stores registers a1 to r0 starting at address in a3,r3
+    spb a1, 3
+    spb r1, 3
+    spb a0, 3
+    stb r0, 3
+	
+ret
+#end of store32BitsTo3From10

@@ -1,0 +1,302 @@
+# aes encryption 
+# HOKSTER Custom Microprocessor Group
+# Yijia Shi and William Diehl
+# Update: 05-01-2020
+
+.dat 0x0000 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+.dat 0x0008 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+.dat 0x0010 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+.dat 0x0018 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+.dat 0x0020 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80
+.dat 0x0028 0x1B, 0x36, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+.dat 0x0030 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+.dat 0x0038 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+
+# memory map
+# 0x00 - 0x0F - 16 bytes plaintext
+# plaintext overwritten by ciphertext
+# 0x10 - 0x1F original secret key
+# secret key overwritten during round key scheduling
+# 0x20 - 0x29 (32 - 41) Round Constants 1 to 10
+# 0x2A - 0x2D (42 - 45) g function memory (4 bytes)
+# 0x30 (48) op1ptr - pointer to wrdxr operand 1 
+# 0x31 (49) op2ptr - pointer to wrdxr operand 2
+# 0x32 (50) keyptr - pointer to next subkey (k0 - k43)
+# 0x33 (51) wrptr - pointer to next wrdxr write
+# 0x34 - 0x3F - reserved for stack
+
+# memory constants
+.equ ptext 0x00 
+.equ key0 0x10
+.equ gptr 0x1D
+.equ gptrp1 0x1E
+.equ rcptrinit 0x20
+.equ gmem 0x2A
+.equ op1ptr 0x30
+.equ op1ptrinit 0x10
+.equ op2ptr 0x31
+.equ op2ptrinit 0x10
+.equ keyptr 0x32
+.equ wrptr 0x33
+.equ s1 0x01
+.equ s2 0x02
+.equ s3 0x03
+.equ s5 0x05
+.equ s6 0x06
+.equ s7 0x07
+.equ s9 0x09
+.equ s10 0x0A
+.equ s11 0x0B
+.equ s13 0x0D
+.equ s14 0x0E
+.equ s15 0x0F
+
+#start and first add round key with initial key
+#global initialization
+	mvs 0x0040 #establish stack start
+    mvi 9, a7 # round counter global variable
+	mvi rcptrinit, r5 
+    mvi op1ptr, r0
+	mvi op1ptrinit, r1
+	stb r1, 0
+    mvi op2ptr, r0
+	mvi op2ptrinit, r1
+	stb r1, 0
+# end initialization and perform initial add round key and round key update
+	jsr AdRndKy
+	jsr RndKyOtf
+.lbl main #main round
+	jsr Sbytes
+	jsr ShftRw
+	jsr MxCl
+	jsr AdRndKy
+	jsr RndKyOtf
+	sbi 1, a7
+	bzi mainend
+	jmp main
+
+.lbl mainend
+	jsr Sbytes
+	jsr ShftRw
+	jsr AdRndKy
+#end of AES
+	sys 0xFF
+	.end
+#subroutines
+.lbl RndKyOtf
+ 	#compute next round key on the fly after AdRndKy
+ 	#key scheduler
+	#always reinitialize keyptr and wrptr to 0x10
+	mvi keyptr, r0
+	mvi  0x10, r1
+	stb r1, 0
+	mvi  wrptr, r0
+	stb r1, 0
+
+	#g function
+	mvi gptr, r0
+	ldb 0, r2
+	asb r2, r2
+    lpb 5, r0
+	xor r0, r2
+	mvi gmem, r1
+	stb r2, 1
+	adi 1, r1
+
+	#second word
+	mvi gptrp1, r0
+	ldb 0, r2
+	asb r2, r2
+	stb r2, 1 
+	adi 1, r1
+
+	#third word
+	adi 1, r0
+	ldb 0, r2
+	asb r2, r2
+	stb r2, 1
+	adi 1, r1
+
+	#fourth word
+	sbi 3, r0
+	ldb 0, r2
+	asb r2, r2
+	stb r2, 1
+
+	#end gfunction
+	mvi keyptr, r2
+	ldb 2, r0
+	mvi op1ptr, r1
+	stb r0, 1
+	adi 4, r0
+	stb r0, 2
+	mvi gmem, r0
+	mvi op2ptr, r1
+	stb r0, 1
+	#restore value of counter
+    mvi 4, r7
+	jsr wrdxr
+	#restore value of counter
+    mvi 4, r7
+	jsr wrd1
+	jsr wrdxr
+    mvi 4, r7
+	jsr wrd1
+	jsr wrdxr
+    mvi 4, r7
+	jsr wrd1
+	jsr wrdxr
+    mvi 4, r7
+	ret
+	#end of key scheduler#
+
+.lbl wrd1
+	mvi keyptr r2
+	ldb 2, r0
+	mvi op1ptr, r1
+	stb r0, 1
+	adi 4, r0
+	stb r0, 2
+	mvi wrptr, r0
+	ldb 0, r0
+	sbi 4, r0
+	mvi op2ptr, r1
+	stb r0, 1
+	ret
+
+.lbl wrdxr
+	mvi op2ptr, r2
+	ldb 2, r2
+	mvi op1ptr, r3
+	ldb 3, r3
+
+.lbl wrdxrloop
+	ldb 3, r0
+	adi 1, r3
+	ldb 2, r1
+	adi 1, r2
+	xor r0, r1
+	mvi wrptr, r0
+	ldb 0, r0
+	stb r1, 0
+	adi 1, r0
+	mvi wrptr, r1
+	stb r0, 1
+# new addition 1
+	#mvi cntr, r0
+	#ldb 0, r1
+	#sbi 1, r1
+	#stb r1, 0
+	sbi 1, r7
+	bzi wrdxrdne
+	jmp wrdxrloop
+
+.lbl wrdxrdne
+	ret
+
+#subroutine add round key
+.lbl AdRndKy
+	mvi ptext, r0 #plain text start address
+	mvi key0, r1
+# new addition 2
+	mvi 0x10, r7 # counter number
+.lbl lp1
+	ldb 0, r2
+	ldb 1, r3
+	xor r2, r3
+	stb r3, 0
+	adi 1, r0
+	adi 1, r1
+	sbi 1, r7
+	bzi lp1end
+	jmp lp1
+
+.lbl lp1end
+	ret 
+
+#subroutine SubBytes
+.lbl Sbytes 
+	mvi 0x00, a0
+	mvi ptext, r0
+	mvi 0x10, r2
+.lbl lp2
+	ldb 0, r1
+	asb r1, r1
+	stb r1, 0
+	adi 1, r0
+	sbi 1, r2
+	bzi lp2end
+	jmp lp2
+.lbl lp2end
+	ret
+
+.lbl ShftRw #shift row subroutine
+	#shift row 2
+	mvi s1, r0
+	ldb 0, a6
+	mvi s5, r1
+	ldb 1, r6
+	stb r6, 0
+	mvi s9, r2
+	ldb 2, r6
+	stb r6, 1
+	mvi s13, r3
+	ldb 3, r6
+	stb r6, 2
+	stb a6, 3
+	# shift row 3
+	mvi s2, r0
+	mvi s10, r1
+	ldb 0, r2
+	ldb 1, r3
+	stb r2, 1
+	stb r3, 0
+	mvi s6, r0
+	mvi s14, r1
+	ldb 0, r2
+	ldb 1, r3
+	stb r2, 1
+	stb r3, 0
+	# shift row 4
+	mvi s15, r0
+	ldb 0, a6
+	mvi s11 r1
+	ldb 1, r6
+	stb r6, 0
+	mvi s7, r2
+	ldb 2, r6
+	stb r6, 1
+	mvi s3, r3
+	ldb 3, r6
+	stb r6, 2
+	stb a6, 3
+	ret
+	
+.lbl MxCl #subroutine Mixcolumns
+	mvi 0x00, a4
+	mvi ptext, r4
+	mvi 0x04, r6 #counter for the mixcolumn
+.lbl lp3
+	lpb 4, r0
+	lpb 4, r1
+	lpb 4, r2
+	lpb 4, r3 # load value into r0, r1, r2, r3
+
+	amc r0, r1
+	amc r2, r3
+	amc r3, r2
+	amc r3, r1
+	amc r3, r0 # the mix column operation
+	
+	sbi 4, r4
+	spb r0, 4	
+	spb r1, 4
+	spb r2, 4
+	spb r3, 4 # store value back to the memory 
+	
+	sbi 1, r6
+	bzi lp3end
+	jmp lp3
+
+.lbl lp3end
+	ret

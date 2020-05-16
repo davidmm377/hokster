@@ -1,0 +1,64 @@
+# AES SBOX Testbench
+# Tom Conroy
+
+# 0x10 = first value: x, after: sbox(x)
+# 0x11 = after: sbox^-1(sbox(x)) = x
+# r0 = 0
+# r1 = x
+# r3 = copies for manipulation results
+# a4,r4 = address of x
+
+.dat 0x0010 0x00
+
+# location in memory of values
+.equ x_lower 0x10
+.equ x_upper 0x00
+
+# init stack pointer
+mvs 0x2
+
+# load values into registers
+# make a4,r4 address of x
+mvi x_lower, r4
+mvi x_upper, a4
+
+# load x from memory
+ldb 4, r1
+
+jsr sbox
+mov r3, r1
+
+# store result back at x memory address
+# TODO: use spb
+stb r1, 4
+
+# increment address
+mvi 1, r5
+add r5, r4
+
+psh r3
+jsr sbox_inv
+
+# store result back at x memory address+1
+stb r3, 4
+
+sys 0xFF
+.end
+
+# sbox subroutine, expects value in r1,
+# returns value in r3
+.lbl sbox
+sdb r1, r3
+ret
+
+# sbox_inv subroutine, expects value on stack (not recommended),
+# uses r3
+# returns value in r3
+.lbl sbox_inv
+pop r5
+pop r6
+pop r3
+aib r3, r3
+psh r6
+psh r5
+ret

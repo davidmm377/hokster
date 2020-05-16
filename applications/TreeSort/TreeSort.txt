@@ -1,0 +1,171 @@
+#Binary Tree Sort for New Architechture
+#By: Trevor Laffoon
+#Edited: 4/8/2020
+
+#register uses:
+#r0 	= zero register
+#a0 	= array size
+#r1 	= used for operation
+#r2 	= current array value
+#a3,r3 	= address of array value
+#a4,r4 	= next available temporary location in temparray
+#a5,r5 	= location in temporary array
+#r6 	= comparison operations and pointers
+#r7 	= tree node values
+
+
+
+.dat 0x0000 0x2b, 0x61, 0x0e, 0x19, 0x0d, 0x21, 0x28, 0x06, 0x24, 0x0f, 0x3f, 0x12, 0x0c, 0x05, 0x2a, 0x00
+.dat 0x0010 0x1b, 0x76, 0x2e, 0x29, 0x6e, 0x11, 0x08, 0x26, 0x6d, 0x1f, 0x27, 0x45, 0x2c, 0x15, 0x1a, 0x50
+.dat 0x0020 0x0b, 0x30, 0x7f, 0x68, 0x2d, 0x01, 0x37, 0x16, 0x14, 0x2f, 0x07, 0x4f, 0x1c, 0x25, 0x0a, 0x20
+.dat 0x0030 0x5f, 0x4f, 0x3d, 0x4e, 0x2f, 0x4a, 0x39, 0x6a, 0x41, 0x34, 0x62, 0x4d, 0x7c, 0x5d, 0x2a, 0x4b
+.dat 0x0040 0x1b, 0x76, 0x2e, 0x29, 0x6e, 0x11, 0x08, 0x26, 0x3d, 0x44, 0x52, 0x5d, 0x6c, 0x75, 0x5a, 0x49
+.dat 0x0050 0x0b, 0x30, 0x7f, 0x68, 0x2d, 0x01, 0x37, 0x16, 0x6d, 0x54, 0x42, 0x6d, 0x5c, 0x45, 0x3a, 0x6f
+.dat 0x0060 0x23, 0x13, 0x52, 0x65
+
+.equ zero 0x00
+.equ arry 0x00				#start of array address with values
+.equ arrysize 0x64			#size of array in bytes
+.equ temparry_val 0x01		#upper portion of address for temparray node value
+.equ temparry_left 0x02		#upper portion of address for temparray node left pointer
+.equ temparry_right 0x03	#upper portion of address for temparray node right pointer
+.equ temparry_start 0x01	#address to start in each portion of tree
+.equ nullptr 0x0
+
+
+.lbl main
+	mvs 0x0400
+	mvi zero, r0			# make r0 a zero register
+	jsr treeSort
+	
+#end of main
+sys 0xFF
+.end
+
+.lbl treeSort
+	mvi arrysize, a0
+	
+	#make root node
+	mvi arry, r3
+	mvi zero, a3
+	ldb 3, r2
+	mvi temparry_start, r4
+	mvi temparry_val, a4
+	stb r2, 4
+
+	adi 0x1, r4			#update next new node address
+
+
+	.lbl beginTreeSortWhile
+
+		sbi 0x1, a0			#update remaining array size in register 0
+
+		bzi endTreeSortWhile	#exit while loop if the i value equals the size of the array
+
+		mvi temparry_start, r5
+		mvi temparry_val, a5
+
+		adi 0x1, r3			#place current array value in r2
+		ldb 3, r2
+
+		jsr insert			#call insert to place the current array item in the tree
+
+		jmp beginTreeSortWhile
+	.lbl endTreeSortWhile
+
+	mvi arry, r3			#reset array address to begining
+
+	mvi temparry_start, r4		#reset node pointer to root
+	
+
+	jsr storeResultInOrder	#store the result back in orignal array in sorted order
+
+	ret
+#end treeSort sub routine
+
+
+.lbl insert
+
+	ldb 5, r6				#a5, r5 contains address of the current node
+
+							#check for r6 greater than or less than value at address in r2
+	sub r2, r6
+	bni lessThan
+	mvi temparry_right, a5
+	jmp endLessThan
+
+	.lbl lessThan
+	
+		mvi temparry_left, a5
+		
+	.lbl endLessThan
+
+	ldb 5, r6
+	add r0, r6
+							#default null pointer is address 0x00
+	bzi newNode				#make a new node if a null pointer is reached
+	mov r6, r5				#make the root pointer point to the correct subtree
+	mvi temparry_val, a5
+	
+	jsr insert				#call insert on the subtree
+
+	ret
+
+	.lbl newNode
+		#assume pointer storage location to be in r4
+		
+		stb r4, 5			#store pointer to new node in current leaf node
+
+		stb r2, 4			#store the current array value in the temporary tree
+
+							#make pointers zero to represent null pointer
+		mvi zero, r6
+		mvi temparry_left, a4
+		stb r6, 4
+		mvi temparry_right, a4
+		stb r6, 4
+
+		mvi temparry_val, a4			#update the new nextNode pointer
+		adi 0x1, r4
+
+	ret
+#end insert
+
+
+.lbl storeResultInOrder
+							#a3, r3 is current address in final sorted array
+	
+							#a4, r4 is the pointer to node in tree
+	add r0, r4
+	bzi leafFound
+
+	psh r4					#store pointer in stack
+
+	mvi temparry_left, a4 
+	ldb 4, r4				#load the left node pointer in current node pointer register
+
+	jsr storeResultInOrder	#call storeResultInOrder on the smaller left subtree
+
+	pop r4					#get node pointer from stack
+	
+	mvi temparry_val, a4
+	
+	ldb 4, r7				#load the value stored at node pointed to
+
+	stb r7, 3				#store the value in the sorted array
+
+	adi 0x1, r3				#update address of next item in array
+
+	mvi temparry_right, a4	#set the node pointer to right subtree
+
+	ldb 4, r4
+	
+	jsr storeResultInOrder	#call storeResultInOrder on the smaller right subtree
+
+	.lbl leafFound
+	ret
+#end storeResultInOrder
+
+
+
+

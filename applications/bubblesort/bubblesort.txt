@@ -1,0 +1,63 @@
+.dat 0x0000 0x36 0x22 0x02 0x13 0x03 0x18 0x08 0x03
+.dat 0x0010 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
+.dat 0x0020 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
+.dat 0x0030 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
+.dat 0x0040 0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80
+.dat 0x0050 0x1B 0x36 0x00 0x00 0x00 0x00 0x0D 0x20
+
+
+#Bubble_sort sort the data in ascending order
+
+.lbl lp1
+#outer loop
+mvi 0, r7
+# set swap flag
+mvi 0, a0
+mvi 0, a1
+#load upper address
+mvi 0, r0
+mvi 1, r1
+#load lower address
+# reset r0 and r1 to original address
+mvi 7, r5
+# set the r5 to 7
+jmp lp2
+
+.lbl lp2
+#inner loop
+ldb 0, r2
+ldb 1, r3
+mov r2, r4 
+# move the value in r2 to r4
+sub r3, r4
+#compare the value in two address and set the negative flag
+bni swapstep
+# jump to swap step
+jmp lp2cont
+
+.lbl lp2cont
+adi 1, r0
+adi 1, r1
+#increase the address in r0 and r1
+sbi 1, r5
+#array count and set the zero flag
+bzi lp1cont
+jmp lp2
+
+.lbl lp1cont
+adi 1, r7
+sbi 1, r7
+# set the zero flag
+bzi lp1end
+jmp lp1
+
+.lbl lp1end
+sys 0xFF
+.end
+
+.lbl swapstep
+stb r3, 0
+stb r2, 1
+adi 1, r7
+# set the flag for swap
+jmp lp2cont

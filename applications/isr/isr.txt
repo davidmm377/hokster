@@ -1,0 +1,42 @@
+mvs 0x80
+mvv isr, iv1
+mvi 5, a1
+mvi 3, r0
+sbi 10, r1
+adi 10, a1
+sbi 10, r2
+adi 10, a2
+sbi 10, r3
+adi 10, a3
+sbi 10, r4
+adi 10, a4
+sie 0
+hlt
+psh r0
+pop a0
+psh a0
+pop a1
+psh a1
+pop a1
+sbi 5, r0
+adc r0, r1
+mov r0, r0
+mov r0, r0
+mov r0, r0
+sys 0xFF
+.end
+
+.align
+.lbl isr
+sys 0x01
+adi 5, r0
+sbi 5, a0
+sbi 10, r1
+adi 10, a1
+sbi 10, r2
+adi 10, a2
+sbi 10, r3
+adi 10, a3
+sbi 10, r4
+adi 10, a4
+rti

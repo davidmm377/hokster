@@ -1,0 +1,113 @@
+# Greatest Common Denominator
+# Trevor Laffoon
+
+# For new architechture 
+
+# 0x10 = first value, x
+# 0x11 = second value, y
+
+
+#r0 = 0
+#r1 = x then gcd at end of program
+#r2 = y
+#r3 = copies for manipulation results
+#a4,r4 = address of x
+#a5,r5 = address of y
+
+.dat 0x0010 0xFE, 0x0C
+
+.equ zero 0x00
+
+#location in memory of values
+.equ x_lower 0x10
+.equ y_lower 0x11
+.equ x_upper 0x00
+.equ y_upper 0x00
+
+
+#load values into registers
+#make a4,r4 address of x
+mvi x_lower, r4
+mvi x_upper, a4
+
+#load x from memory
+ldb 4, r1	
+
+#make a5,r5 address of y
+mvi y_lower, r5
+mvi y_upper, a5
+
+#load y from memory
+ldb 5, r2
+
+#make r0 a zero register
+mvi zero, r0
+
+#check for negatives
+#add 0 to x to set flags
+add r0, r1
+#branch if x is negative
+bni posX
+bzi endWhile
+
+.lbl endCheckNegX
+
+#add 0 to y to set flags
+add r0, r2
+#branch if y is negative
+bni PosY
+bzi endWhile
+#jump to while loop
+jmp beginWhile
+
+.lbl posX
+#make x positive
+sub r0, r1
+#jump back to after negative check for value 1
+jmp endCheckNegX
+
+.lbl PosY
+#make y positive
+sub r0, r2
+
+#begin while loop
+
+.lbl beginWhile
+#while condition checking
+#make a copy of y
+mov r2, r3
+#r3 = x - y
+sub r1, r3
+#exit while if the 2 values are equal
+bzi endWhile
+
+#make a copy of x
+mov r1, r3
+#r3 = y - x
+sub r2, r3
+#check to see if x is larger than y
+bni iftrue
+
+#make a copy of x
+mov r1, r3
+#r3 = y - x
+sub r2, r3
+#overwite x with result of subtraction
+mov r3, r2
+jmp beginWhile
+
+.lbl iftrue
+#make a copy of y
+mov r2, r3
+#r3 = x - y
+sub r1, r3
+#overwite y with result of subtraction
+mov r3, r1
+jmp beginWhile
+
+.lbl endWhile
+#store result back at x memory address
+stb r1, 4
+#
+.end
+nop
