@@ -1,0 +1,112 @@
+#### comet aes pdi_aes1
+### 00010010 = Comet AES
+INS = 12000000
+
+#### Authenticated Encryption
+#### MsgID= 13, KeyID=  7 Ad Size =   17, Pt Size =   17
+# Instruction: Opcode=Activate Key
+INS = 70000000
+# Instruction: Opcode=Authenticated Encryption
+INS = 20000000
+# Info :                     Npub, EOI=0 EOT=1, Last=0, Length=16 bytes
+HDR = D2000010
+DAT = 8B18615A6B2546831DCA033966EE2E47
+# Info :          Associated Data, EOI=0 EOT=1, Last=0, Length=17 bytes
+HDR = 12000011
+DAT = F7987DADAA82DEA27B51630A1D5C1504B0000000
+# Info :                Plaintext, EOI=1 EOT=1, Last=1, Length=17 bytes
+HDR = 47000011
+DAT = AA206D9C78A18AE05C325B8CA1E11345B3000000
+
+#### Authenticated Decryption
+#### MsgID= 14, KeyID=  7 Ad Size =   17, Ct Size =   17
+# Instruction: Opcode=Authenticated Decryption
+INS = 30000000
+# Info :                     Npub, EOI=0 EOT=1, Last=0, Length=16 bytes
+HDR = D2000010
+DAT = 8B18615A6B2546831DCA033966EE2E47
+# Info :          Associated Data, EOI=0 EOT=1, Last=0, Length=17 bytes
+HDR = 12000011
+DAT = F7987DADAA82DEA27B51630A1D5C1504B0000000
+# Info :               Ciphertext, EOI=1 EOT=1, Last=0, Length=17 bytes
+HDR = 56000011
+DAT = 7C876199AB2509CBE8EB93DF875D793878000000
+# Info :                      Tag, EOI=0 EOT=1, Last=1, Length=16 bytes
+HDR = 83000010
+DAT = 60ABAD754612253ADDEDE328FB2983F8
+
+### Comet Cham pdi_cham
+### 00010001 = Comet Cham
+INS = 11000000
+
+#### Authenticated Encryption
+#### MsgID= 13, KeyID=  7 Ad Size =   17, Pt Size =   17
+# Instruction: Opcode=Activate Key
+INS = 70000000
+# Instruction: Opcode=Authenticated Encryption
+INS = 20000000
+# Info :                     Npub, EOI=0 EOT=1, Last=0, Length=16 bytes
+HDR = D2000010
+DAT = 9248C517BA8216EBC25356FE045007C7
+# Info :          Associated Data, EOI=0 EOT=1, Last=0, Length=17 bytes
+HDR = 12000011
+DAT = FF552D13E45B63B0CE17F7AAB0A62943CA000000
+# Info :                Plaintext, EOI=1 EOT=1, Last=1, Length=17 bytes
+HDR = 47000011
+DAT = C9A4FD9D6597AD44D09DFB9B038EF35FB9000000
+
+#### Authenticated Decryption
+#### MsgID= 14, KeyID=  7 Ad Size =   17, Ct Size =   17
+# Instruction: Opcode=Authenticated Decryption
+INS = 30000000
+# Info :                     Npub, EOI=0 EOT=1, Last=0, Length=16 bytes
+HDR = D2000010
+DAT = 9248C517BA8216EBC25356FE045007C7
+# Info :          Associated Data, EOI=0 EOT=1, Last=0, Length=17 bytes
+HDR = 12000011
+DAT = FF552D13E45B63B0CE17F7AAB0A62943CA000000
+# Info :               Ciphertext, EOI=1 EOT=1, Last=0, Length=17 bytes
+HDR = 56000011
+DAT = 435BEC4DB7DABA292B837258BD339EEFC0000000
+# Info :                      Tag, EOI=0 EOT=1, Last=1, Length=16 bytes
+HDR = 83000010
+DAT = 80C9EEB000D880007BD85998D1CD1470
+
+### gift cofb pdi_gift
+### 00010000 = gift cofb
+INS = 10000000
+
+#### Authenticated Encryption
+#### MsgID= 13, KeyID=  7 Ad Size =   17, Pt Size =   17
+# Instruction: Opcode=Activate Key
+INS = 70000000
+# Instruction: Opcode=Authenticated Encryption
+INS = 20000000
+# Info :                     Npub, EOI=0 EOT=1, Last=0, Length=16 bytes
+HDR = D2000010
+DAT = 41CF31800A6871B589AC1A1C1F233EC3
+# Info :          Associated Data, EOI=0 EOT=1, Last=0, Length=17 bytes
+HDR = 12000011
+DAT = 5262A2F9E0B680ADE7E3902B9D882FD4CE000000
+# Info :                Plaintext, EOI=1 EOT=1, Last=1, Length=17 bytes
+HDR = 47000011
+DAT = D261F66201C7D0CE0142609A0B1E09E5A2000000
+
+#### Authenticated Decryption
+#### MsgID= 14, KeyID=  7 Ad Size =   17, Ct Size =   17
+# Instruction: Opcode=Authenticated Decryption
+INS = 30000000
+# Info :                     Npub, EOI=0 EOT=1, Last=0, Length=16 bytes
+HDR = D2000010
+DAT = 41CF31800A6871B589AC1A1C1F233EC3
+# Info :          Associated Data, EOI=0 EOT=1, Last=0, Length=17 bytes
+HDR = 12000011
+DAT = 5262A2F9E0B680ADE7E3902B9D882FD4CE000000
+# Info :               Ciphertext, EOI=1 EOT=1, Last=0, Length=17 bytes
+HDR = 56000011
+DAT = 885E83A1D69A66863CBFFE0E23F988B297000000
+# Info :                      Tag, EOI=0 EOT=1, Last=1, Length=16 bytes
+HDR = 83000010
+DAT = F769D014C228666F8510EB04F47E9785
+
+###EOF

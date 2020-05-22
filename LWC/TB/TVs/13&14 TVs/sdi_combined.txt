@@ -1,0 +1,31 @@
+#### comet aes sdi_aes1
+### 00010001 = Comet AES
+
+#### MsgID= 13, KeyID=  7
+# Instruction: Opcode=Load Key
+INS = 40000000
+# Info :                      Key, EOI=1 EOT=1, Last=1, Length=16 bytes
+HDR = C7000010
+DAT = 32F23B6DEF9B479F763B822F662FE9B8
+
+### comet cham sdi_cham
+### 00010010 = Comet Cham
+
+#### MsgID= 13, KeyID=  7
+# Instruction: Opcode=Load Key
+INS = 40000000
+# Info :                      Key, EOI=1 EOT=1, Last=1, Length=16 bytes
+HDR = C7000010
+DAT = 45E649C81D8F0A599366A715177C6372
+
+### gift cofb sdi_gift
+### 00010011 = gift cofb
+
+#### MsgID= 13, KeyID=  7
+# Instruction: Opcode=Load Key
+INS = 40000000
+# Info :                      Key, EOI=1 EOT=1, Last=1, Length=16 bytes
+HDR = C7000010
+DAT = 9A2E16DF66EDA79DFB286E3EA25AB26E
+
+###EOF
