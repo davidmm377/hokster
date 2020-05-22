@@ -1,0 +1,100 @@
+#### comet aes pdi_aes1
+### 00010010 = Comet AES
+INS = 12000000
+
+#### Authenticated Encryption
+#### MsgID=  1, KeyID=  1 Ad Size =    0, Pt Size =    0
+# Instruction: Opcode=Activate Key
+INS = 70000000
+# Instruction: Opcode=Authenticated Encryption
+INS = 20000000
+# Info :                     Npub, EOI=1 EOT=1, Last=0, Length=16 bytes
+HDR = D6000010
+DAT = DC69A280D699D2FDB821A667FF8D08EF
+# Info :          Associated Data, EOI=0 EOT=1, Last=0, Length=0 bytes
+HDR = 12000000
+# Info :                Plaintext, EOI=0 EOT=1, Last=1, Length=0 bytes
+HDR = 43000000
+
+#### Authenticated Decryption
+#### MsgID=  2, KeyID=  1 Ad Size =    0, Ct Size =    0
+# Instruction: Opcode=Authenticated Decryption
+INS = 30000000
+# Info :                     Npub, EOI=1 EOT=1, Last=0, Length=16 bytes
+HDR = D6000010
+DAT = DC69A280D699D2FDB821A667FF8D08EF
+# Info :          Associated Data, EOI=0 EOT=1, Last=0, Length=0 bytes
+HDR = 12000000
+# Info :               Ciphertext, EOI=0 EOT=1, Last=0, Length=0 bytes
+HDR = 52000000
+# Info :                      Tag, EOI=0 EOT=1, Last=1, Length=16 bytes
+HDR = 83000010
+DAT = BC6D270EA07125F58B0671E24AC597B9
+
+### Comet Cham pdi_cham
+### 00010001 = Comet Cham
+INS = 11000000
+
+#### Authenticated Encryption
+#### MsgID=  1, KeyID=  1 Ad Size =    0, Pt Size =    0
+# Instruction: Opcode=Activate Key
+INS = 70000000
+# Instruction: Opcode=Authenticated Encryption
+INS = 20000000
+# Info :                     Npub, EOI=1 EOT=1, Last=0, Length=16 bytes
+HDR = D6000010
+DAT = FB114E8A45002B547206300B9F012EEF
+# Info :          Associated Data, EOI=0 EOT=1, Last=0, Length=0 bytes
+HDR = 12000000
+# Info :                Plaintext, EOI=0 EOT=1, Last=1, Length=0 bytes
+HDR = 43000000
+
+#### Authenticated Decryption
+#### MsgID=  2, KeyID=  1 Ad Size =    0, Ct Size =    0
+# Instruction: Opcode=Authenticated Decryption
+INS = 30000000
+# Info :                     Npub, EOI=1 EOT=1, Last=0, Length=16 bytes
+HDR = D6000010
+DAT = FB114E8A45002B547206300B9F012EEF
+# Info :          Associated Data, EOI=0 EOT=1, Last=0, Length=0 bytes
+HDR = 12000000
+# Info :               Ciphertext, EOI=0 EOT=1, Last=0, Length=0 bytes
+HDR = 52000000
+# Info :                      Tag, EOI=0 EOT=1, Last=1, Length=16 bytes
+HDR = 83000010
+DAT = 62DD86F50AE11277D9DA8818D4DF43D8
+
+### gift cofb pdi_gift
+### 00010000 = gift cofb
+INS = 10000000
+
+#### Authenticated Encryption
+#### MsgID=  1, KeyID=  1 Ad Size =    0, Pt Size =    0
+# Instruction: Opcode=Activate Key
+INS = 70000000
+# Instruction: Opcode=Authenticated Encryption
+INS = 20000000
+# Info :                     Npub, EOI=1 EOT=1, Last=0, Length=16 bytes
+HDR = D6000010
+DAT = B20B3D7BABD094FC8CFA858D11CFEC7C
+# Info :          Associated Data, EOI=0 EOT=1, Last=0, Length=0 bytes
+HDR = 12000000
+# Info :                Plaintext, EOI=0 EOT=1, Last=1, Length=0 bytes
+HDR = 43000000
+
+#### Authenticated Decryption
+#### MsgID=  2, KeyID=  1 Ad Size =    0, Ct Size =    0
+# Instruction: Opcode=Authenticated Decryption
+INS = 30000000
+# Info :                     Npub, EOI=1 EOT=1, Last=0, Length=16 bytes
+HDR = D6000010
+DAT = B20B3D7BABD094FC8CFA858D11CFEC7C
+# Info :          Associated Data, EOI=0 EOT=1, Last=0, Length=0 bytes
+HDR = 12000000
+# Info :               Ciphertext, EOI=0 EOT=1, Last=0, Length=0 bytes
+HDR = 52000000
+# Info :                      Tag, EOI=0 EOT=1, Last=1, Length=16 bytes
+HDR = 83000010
+DAT = 5B34FDFE372EBC66C34F0026D49BAC79
+
+###EOF

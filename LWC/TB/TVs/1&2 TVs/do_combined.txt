@@ -1,0 +1,73 @@
+#### comet aes do_aes1
+### 00010001 = comet aes
+
+#### Authenticated Encryption
+#### MsgID=  1, KeyID=  1 Ad Size =    0, Pt Size =    0
+# Instruction: Opcode=Authenticated Encryption
+# TB :20101 (Encoding used by testbench)
+# Info :               Ciphertext, EOT=1, Last=0, Length=0 bytes
+HDR = 52000000
+# Info :                      Tag, EOT=1, Last=1, Length=16 bytes
+HDR = 83000010
+DAT = BC6D270EA07125F58B0671E24AC597B9
+# Status: Success
+STT = E0000000
+
+#### Authenticated Decryption
+#### MsgID=  2, KeyID=  1 Ad Size =    0, Ct Size =    0
+# Instruction: Opcode=Authenticated Decryption
+# TB :30102 (Encoding used by testbench)
+# Info :                Plaintext, EOT=1, Last=1, Length=0 bytes
+HDR = 43000000
+# Status: Success
+STT = E0000000
+
+### comet cham do_cham
+### 00010010 = comet cham
+
+#### Authenticated Encryption
+#### MsgID=  1, KeyID=  1 Ad Size =    0, Pt Size =    0
+# Instruction: Opcode=Authenticated Encryption
+# TB :20101 (Encoding used by testbench)
+# Info :               Ciphertext, EOT=1, Last=0, Length=0 bytes
+HDR = 52000000
+# Info :                      Tag, EOT=1, Last=1, Length=16 bytes
+HDR = 83000010
+DAT = 62DD86F50AE11277D9DA8818D4DF43D8
+# Status: Success
+STT = E0000000
+
+#### Authenticated Decryption
+#### MsgID=  2, KeyID=  1 Ad Size =    0, Ct Size =    0
+# Instruction: Opcode=Authenticated Decryption
+# TB :30102 (Encoding used by testbench)
+# Info :                Plaintext, EOT=1, Last=1, Length=0 bytes
+HDR = 43000000
+# Status: Success
+STT = E0000000
+
+### gift cofb do_gift
+### 00010011 = gift cofb
+
+#### Authenticated Encryption
+#### MsgID=  1, KeyID=  1 Ad Size =    0, Pt Size =    0
+# Instruction: Opcode=Authenticated Encryption
+# TB :20101 (Encoding used by testbench)
+# Info :               Ciphertext, EOT=1, Last=0, Length=0 bytes
+HDR = 52000000
+# Info :                      Tag, EOT=1, Last=1, Length=16 bytes
+HDR = 83000010
+DAT = 5B34FDFE372EBC66C34F0026D49BAC79
+# Status: Success
+STT = E0000000
+
+#### Authenticated Decryption
+#### MsgID=  2, KeyID=  1 Ad Size =    0, Ct Size =    0
+# Instruction: Opcode=Authenticated Decryption
+# TB :30102 (Encoding used by testbench)
+# Info :                Plaintext, EOT=1, Last=1, Length=0 bytes
+HDR = 43000000
+# Status: Success
+STT = E0000000
+
+###EOF
