@@ -2,7 +2,7 @@
 -- Engineer: Tom Conroy, Minh Vu
 
 -- Design Name: 
--- Module Name: loader - Structural
+-- Module Name: loader_dma - Structural
 -- Project Name: HOKSTER Core
 -- Target Devices: 
 -- Tool Versions: 
@@ -127,19 +127,23 @@ signal extwe : STD_LOGIC;
 signal dmaactive : STD_LOGIC;
 
 -- COMPONENTS
-component dma port(
-    clk : in STD_LOGIC;
-    rst : in STD_LOGIC;
-    auxdaddr: in STD_LOGIC_VECTOR(15 downto 0);
-    auxdin: in STD_LOGIC_VECTOR(7 downto 0);
-    extdout: in STD_LOGIC_VECTOR(7 downto 0);
-    ack : in STD_LOGIC;
-    irq : out STD_LOGIC;
-    auxdoutsel : out STD_LOGIC;
-    extdin : out STD_LOGIC_VECTOR(7 downto 0);
-    extdaddr : out STD_LOGIC_VECTOR(15 downto 0);
-    extwe : out STD_LOGIC;
-    active: out STD_LOGIC
+component dma
+    generic(
+        G : STD_LOGIC_VECTOR (2 downto 0) := "010"
+    );
+    port(
+        clk : in STD_LOGIC;
+        rst : in STD_LOGIC;
+        auxdaddr: in STD_LOGIC_VECTOR(15 downto 0);
+        auxdin: in STD_LOGIC_VECTOR(7 downto 0);
+        extdout: in STD_LOGIC_VECTOR(7 downto 0);
+        ack : in STD_LOGIC;
+        irq : out STD_LOGIC;
+        auxdoutsel : out STD_LOGIC;
+        extdin : out STD_LOGIC_VECTOR(7 downto 0);
+        extdaddr : out STD_LOGIC_VECTOR(15 downto 0);
+        extwe : out STD_LOGIC;
+        active: out STD_LOGIC
 );
 end component;
 
@@ -282,6 +286,10 @@ controller: entity work.loader_controller(Behavioral)
 ack <= '1' when sbus = x"11" else '0';
 
 dmainst: dma
+    generic map(
+        -- Can change value of G for DMA here (should be between 0 and 4)
+        G => "010"
+    )
     port map (
         clk => clk,
         rst => rst,

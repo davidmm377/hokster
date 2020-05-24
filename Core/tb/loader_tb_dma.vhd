@@ -2,7 +2,7 @@
 -- Engineer: Tom Conroy, Minh Vu
 
 -- Design Name: 
--- Module Name: loader_tb_isr - Behavioral
+-- Module Name: loader_tb_dma - Behavioral
 -- Project Name: HOKSTER Core
 -- Target Devices: 
 -- Tool Versions: 
@@ -49,9 +49,9 @@ uut: entity work.loader_dma(Structural)
         G_PMEM_SIZE => 8,
         G_DMEM_SIZE => 16,
         PROG_LOAD_SIZE => 8,
-        PROG_FILE => "dmatest0_prog.hex",
+        PROG_FILE => "dma_test0_prog.hex",
         DATA_LOAD_SIZE => 8,
-        DATA_FILE => "dmatest0_data.hex",
+        DATA_FILE => "dma_test0_data.hex",
         END_READ_LOC => x"001F"
     )
     port map ( clk => clk,
