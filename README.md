@@ -1,6 +1,8 @@
 # HOKSTER
 
-Hardware-Oriented *Kustom* Security Test & Evaluation Resource (HOKSTER) is a custom-designed 8-bit soft core processor. Intended to be lightweight, HOKSTER is a load-store architecture that supports only 38 instructions by default (although more can be added via instruction set extensions). Details of the architecture and HOKSTER assembly language can be found in the [HOKSTER Manual](https://github.com/willja001/hokster/blob/master/documentation/Hokster_Manual_upd6.pdf) under documentation/, but for a summary of the primary features of HOKSTER:
+![HOKSTER Logo](/documentation/Hokster_Logo.png)
+
+Hardware-Oriented *Kustom* Security Test & Evaluation Resource (HOKSTER) is a custom-designed 8-bit soft core processor. Intended to be lightweight, HOKSTER is a load-store architecture that supports only 38 instructions by default (although more can be added via instruction set extensions). Details of the architecture and HOKSTER assembly language can be found in the [HOKSTER Manual](/documentation/Hokster_Manual_upd6.pdf) under documentation/, but for a summary of the primary features of HOKSTER:
 
 * Harvard architecture with separate program memory (up to 4 KiB) and data memory (up to 64 KiB) configurable at synthesis time.
 * 16 near-general-purpose 8-bit registers (a7-a0 and r7-r0) with the ability to address 16 bits of data memory using register pairs of the form ai || ri.
