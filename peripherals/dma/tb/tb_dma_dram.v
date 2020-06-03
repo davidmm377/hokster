@@ -188,9 +188,10 @@ module tb_dma_dram();
         #20;
         // Start
         abus = 16'h0100;
-        dbus  = 8'h00;
+        dbus  = 8'hff;
         #20;
         abus = 16'h0000;
+        dbus  = 8'h00;
         
         // Do transfer
         #490;

@@ -81,9 +81,7 @@ module dma(
                         DST_START_L:    dstcounter[7:0]  <= auxdin;
                         DST_START_M:    dstcounter[15:8] <= auxdin;
                         NUM_TRANSFER:   numbytes <= (auxdin + 1) << G;
-                        START:  begin
-                            state <= READ;
-                        end
+                        START:          if(auxdin == 8'hff) state <= READ;
                     endcase
                 end
                 

@@ -54,9 +54,9 @@ mvi 0x05, r0
 mvi nval, r1
 stb r1, 0
 
-# Start memory transfer by writing to 0x0100:
-# (any value will do)
+# Start memory transfer by writing 0xFF to 0x0100:
 mvi 0x00, r0
+mvi 0xFF, r1
 stb r1, 0
 hlt         # Wait for interrupt
 

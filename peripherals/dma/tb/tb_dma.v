@@ -112,9 +112,10 @@ module tb_dma();
         #20;
         // Start
         auxdaddr = 16'h0100;
-        auxdin  = 8'h00;
+        auxdin  = 8'hff;
         #20;
         auxdaddr = 16'h0000;
+        auxdin  = 8'h00;
 //        extdout = 8'h00;
         
         // Do transfer
