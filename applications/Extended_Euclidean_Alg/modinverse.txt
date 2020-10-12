@@ -1,0 +1,116 @@
+# 27 mod 43 = 8
+# 14 mod 29 = 27
+# 3 mod 7 = 5 
+# 48 mod 83 = 64
+# 74 mod 127 = 115
+
+# a inverse mod b 
+
+# Approach 
+# As we don't have direct instructions for division and multiplication
+# We are trying to achieve multiplication using addition and division by subtraction
+# If the subtract value is negative, swap dividend and divisor and repeat 
+# Stop the iteration when result of subtraction is 1
+
+#Constants
+
+.dat 0x0010 0x00 0x00 0x00 0x00 
+
+.equ a 74  #48 #14 #27 #3 
+.equ b 127 #83 #29 #43 #7 
+.equ y1 1
+.equ y2 0
+
+# move constant values to registers
+mvi a, r0 
+mvi b, r1
+mvi y1, r5
+mvi y2, r6
+mvi 0xff, r7 # moving -1 to r7 register
+mvi 0x00 r2  # moving 0 to r2 register
+
+# reserving registers values into other register
+mov r0, a0
+mov r1, a1
+mov a0, a2  # move divisor to a2
+mvi 0, a6   # counter for saving quotient 
+
+.lbl findQuotient
+
+#logic for a1 - a2 and iterating
+mov a2, a3  # mov a2 to a3 for future purpose
+mov a1, a4  # mov a1 to  a4 for future purpose
+sub a1, a2  # subtract a1 , a2 and store in a2
+
+mov a2, a7  # mov a2 to a7 for checking if reminder is 1
+mov a0, a5  # this is temporary storage when subtraction value is negative 
+
+sub a3, a2  #if difference is greater than subtrahend, then swap
+bni swap    # if above results in negative, swap and find quotient again.
+
+mov a7, a2 # move back if not negative
+	
+mov a0, a1  # each iteration swap the Minuend with subtrahend and subtrahend with difference
+mov a2, a0  
+
+#save quotient 
+adi 1, a6 
+mvi 0x00, r2  
+# Check if reminder is 1 then we need to do finalMulti
+add r7, a7
+bzi finalMulti
+jmp multi
+
+
+#swap the values if results in negative
+.lbl swap
+mov a7, a1
+mov a3, a2
+adi 1, a6
+jmp findQuotient
+
+#calc y value using formula y(i-2) - q * y(i-1) 
+#multiply the quotient with y(i-1)
+.lbl multi 
+mov a6, r3
+add r5, r2 
+add r7, a6
+#calcY at the end of each iteration
+bzi calcY
+jmp multi
+
+#subtract value y(i-2) from the above multiplication.
+.lbl calcY
+sub r6, r2
+mov r5, r6
+mov r2, r5     
+mvi 0x00, a6  # reset counter
+jmp findQuotient
+
+#Finally calculating the y value quotient with y(i-1)  
+.lbl finalMulti
+mov a6, r3
+add r5, r2 
+add r7, a6
+#once counter becomes zero call finalCalc
+bzi finalCalc
+jmp finalMulti
+
+#check if final result is negative 
+.lbl finalCalc
+sub r6, r2
+#call calcY if negative
+bni negY
+jmp end
+
+#check if the result is negative, then add result to r1 value 
+.lbl negY
+add r1, r2
+jmp end
+ 
+#end of the program 
+.lbl end
+stb r2, 1
+sys 0xFF
+.end
+ 
